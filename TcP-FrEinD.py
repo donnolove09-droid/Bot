@@ -66,7 +66,6 @@ async def GeNeRaTeAccEss(uid , password):
     which raises "too many values to unpack (expected 2)" on a string.
     """
     urls = [
-        "https://ffmconnect.ppmainecoonghj.com/oauth/guest/token/grant",
         "https://100067.connect.garena.com/oauth/guest/token/grant",
     ]
     data = {
@@ -89,7 +88,7 @@ async def GeNeRaTeAccEss(uid , password):
             try:
                 headers = dict(headers_base)
                 headers["Host"] = url.split("/")[2]
-                async with session.post(url, headers=headers, data=data, ssl=False) as response:
+                async with session.post(url, headers=headers, data=data) as response:
                     body = await response.text()
                     if response.status != 200:
                         last_err = f"http_{response.status}"
