@@ -564,6 +564,9 @@ async def answer_callback(callback_id):
 async def telegram_polling():
     """টেলিগ্রাম থেকে আপডেট নেওয়ার ফাংশন (লং পোলিং)"""
     offset = 0
+    if not TELEGRAM_BOT_TOKEN:
+        print("[OMNEX] TELEGRAM_BOT_TOKEN is empty - set it in Railway Variables. Telegram polling disabled.")
+        return
     print("🤖 Telegram Bot Started - Polling for updates...")
     
     async with aiohttp.ClientSession() as session:
@@ -581,7 +584,7 @@ async def telegram_polling():
                             await process_telegram_command(update)
                             
             except Exception as e:
-                print(f"Telegram polling error: {e}")
+                print(f"Telegram polling error: {type(e).__name__}: {e}")
                 await asyncio.sleep(5)
 
 # Original encrypted_proto and other functions remain the same
@@ -599,7 +602,6 @@ async def GeNeRaTeAccEss(uid , password):
     which raises "too many values to unpack (expected 2)" on a string.
     """
     urls = [
-        "https://ffmconnect.ppmainecoonghj.com/oauth/guest/token/grant",
         "https://100067.connect.garena.com/oauth/guest/token/grant",
     ]
     data = {
@@ -625,7 +627,7 @@ async def GeNeRaTeAccEss(uid , password):
             try:
                 headers = dict(headers_base)
                 headers["Host"] = url.split("/")[2]
-                async with session.post(url, headers=headers, data=data, ssl=False) as response:
+                async with session.post(url, headers=headers, data=data) as response:
                     body = await response.text()
                     if response.status == 429:
                         # Garena is throttling us. Remember it so the retry
@@ -654,6 +656,7 @@ async def GeNeRaTeAccEss(uid , password):
                 last_err = type(e).__name__
                 continue
     print(f"[OMNEX] OAuth failed: {last_err}")
+    _set_last_error(f"OAuth failed: {last_err or 'unknown'}")
     return None, None
 
 
@@ -1242,6 +1245,8 @@ async def MaiiiinE():
 
     if acc is None or MajoRLoGinauTh is None:
         print("[OMNEX] No account could complete login")
+        if LAST_ERROR == "none yet":
+            _set_last_error("No account could complete login")
         return None
 
     _set_last_error("none — login OK")
@@ -1266,6 +1271,7 @@ async def MaiiiinE():
     LoGinDaTa = await GetLoginData(UrL, PyL, ToKen)
     if not LoGinDaTa:
         print("ErroR - GeTinG PorTs From LoGin DaTa !")
+        _set_last_error("GetLoginData failed (no ports)")
         return None
 
     LoGinDaTaUncRypTinG = await DecRypTLoGinDaTa(LoGinDaTa)
@@ -1277,6 +1283,7 @@ async def MaiiiinE():
 
     if not (OnLineiP and OnLineporT) or not (ChaTiP and ChaTporT):
         print(f"[OMNEX] Bad ports: online={OnLinePorTs!r} chat={ChaTPorTs!r}")
+        _set_last_error("Bad ports in login data")
         return None
 
     acc_name = LoGinDaTaUncRypTinG.AccountName
